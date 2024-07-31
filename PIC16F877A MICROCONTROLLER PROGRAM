@@ -1,0 +1,215 @@
+
+#include <main.h>
+#include "flex_lcd.c"
+#use rs232(baud=9600, xmit=PIN_C6, rcv=PIN_C7, ERRORS)
+#byte porta  = 0x05
+#byte portb  = 0x06
+#byte portc  = 0x07
+#byte portd  = 0x08
+#byte porte  = 0x09
+#byte trisa  = 0x85
+#byte trisb  = 0x86
+#byte trisc  = 0x87
+#byte trisd  = 0x88
+#byte trise  = 0x89
+
+#bit RELAY = 0x06.7
+
+float temperature=0;
+float load=0;
+int16 t=0; 
+int16 l=0; 
+
+void main()
+{
+ 
+trisa=0xff;
+trisc=0x80;
+//trisb=0x00;
+//portb=0xff;
+trisb=0x00;
+portb=0x00;
+
+lcd_init();
+setup_comparator(NC_NC_NC_NC);// This device COMP currently not supported by the PICWizard
+lcd_gotoxy(1,1);
+lcd_putc("    IOT BASED   ");
+//lcd_putc("\f");
+lcd_gotoxy(1,2);
+lcd_putc(" TRANSFORMER MON");
+delay_ms(5000);
+lcd_gotoxy(1,1);
+lcd_putc(" BOOTING MODEM  ");
+lcd_gotoxy(1,2);
+lcd_putc(" PLEASE WAIT. . ");
+delay_ms(5000);
+lcd_gotoxy(1,1);
+lcd_putc("  MODEM READY!! ");
+lcd_gotoxy(1,2);
+lcd_putc("                ");
+delay_ms(2000);   
+lcd_putc("\f"); 
+RELAY=1;
+
+lcd_putc("\f");
+//BUZ = 0;l
+while(TRUE)
+  {    
+   
+          
+         
+         setup_adc_ports(sAN0);
+         setup_adc(ADC_CLOCK_DIV_8);      
+         delay_ms(10);
+         set_adc_channel(0);
+         delay_ms(10);
+         temperature=read_adc();
+         delay_ms(10);
+         
+         setup_adc_ports(sAN1);
+         delay_ms(10);
+         setup_adc(ADC_CLOCK_DIV_8);      
+         delay_ms(10);
+         set_adc_channel(1);
+         delay_ms(10);
+         load=read_adc();
+         delay_ms(10);
+        
+        
+        
+        
+         temperature/=2;
+         delay_ms(10);
+         
+         load*=100;
+         delay_ms(10);
+         load/=1023;
+         delay_ms(10);
+         
+         t=temperature;
+         l=load;
+         
+         lcd_gotoxy(1,1);
+         lcd_putc("TEMPERATURE LOAD");
+         lcd_gotoxy(4,2); 
+         printf(lcd_putc,"%LU'C ",t);   
+         lcd_gotoxy(13,2); 
+         printf(lcd_putc,"%LUKW    ",l);   
+         
+         
+         if(t>40)
+         {
+         lcd_gotoxy(1,1);
+         lcd_putc("ALERT HIGH TEMP ");
+         lcd_gotoxy(1,2);
+         lcd_putc(" IN TRANSFORMER ");
+         delay_ms(3000);
+         lcd_gotoxy(1,1);
+         lcd_putc(" ISOLATING LOAD ");
+         lcd_gotoxy(1,2);
+         lcd_putc("FROM TRANSFORMER");
+         delay_ms(3000);
+         RELAY=0;
+                  
+         lcd_gotoxy(1,1);
+         lcd_putc(" SMS SENDING TO ");
+         lcd_gotoxy(1,2);
+         lcd_putc("  REGISTERED NO ");
+         delay_ms(1000);
+        
+         printf("AT");
+         putc(13);
+         putc(10);
+         delay_ms(1000);
+         printf("AT+CMGF=1");
+         putc(13);
+         putc(10);
+         delay_ms(1000); 
+         puts("AT+CMGS=\"8754214031\"");
+         putc(13);
+         putc(10);
+         delay_ms(5000);
+         
+         printf("ALERT!!! HIGH TEMPERATURE DETECTED IN TRANSFORMER");  
+         putc(13);
+         putc(10);
+         printf("LOADS DISCONNECTED AUTOMATICALLY");  
+         putc(13);
+         putc(10);
+         printf("https://iot-project24.000webhostapp.com/transformer.html");  
+         putc(13);
+         putc(10);
+         
+         putc(26);
+         delay_ms(7000);
+         
+         lcd_gotoxy(1,1);
+         lcd_putc("    SMS SENT    ");
+         lcd_gotoxy(1,2);
+         lcd_putc("  SUCCESSFULLY! ");
+         delay_ms(3000);
+        
+         lcd_putc("\f");
+         }
+         
+         
+         if(l>80)
+         {
+         lcd_gotoxy(1,1);
+         lcd_putc("ALERT OVER LOAD ");
+         lcd_gotoxy(1,2);
+         lcd_putc(" IN TRANSFORMER ");
+         delay_ms(3000);
+         lcd_gotoxy(1,1);
+         lcd_putc(" ISOLATING LOAD ");
+         lcd_gotoxy(1,2);
+         lcd_putc("FROM TRANSFORMER");
+         delay_ms(3000);
+         RELAY=0;
+                  
+         lcd_gotoxy(1,1);
+         lcd_putc(" SMS SENDING TO ");
+         lcd_gotoxy(1,2);
+         lcd_putc("  REGISTERED NO ");
+         delay_ms(1000);
+        
+         printf("AT");
+         putc(13);
+         putc(10);
+         delay_ms(1000);
+         printf("AT+CMGF=1");
+         putc(13);
+         putc(10);
+         delay_ms(1000); 
+         puts("AT+CMGS=\"8754214031\"");
+         putc(13);
+         putc(10);
+         delay_ms(5000);
+         
+         printf("ALERT!!! OVER LOAD DETECTED IN TRANSFORMER");  
+         putc(13);
+         putc(10);
+         printf("LOADS DISCONNECTED AUTOMATICALLY");  
+         putc(13);
+         putc(10);
+         printf("https://iot-project24.000webhostapp.com/transformer.html");  
+         putc(13);
+         putc(10);
+         
+         putc(26);
+         delay_ms(7000);
+         
+         lcd_gotoxy(1,1);
+         lcd_putc("    SMS SENT    ");
+         lcd_gotoxy(1,2);
+         lcd_putc("  SUCCESSFULLY! ");
+         delay_ms(3000);
+        
+         lcd_putc("\f");
+         }
+         
+        
+         
+   delay_ms(1000);
+  }
+} 
